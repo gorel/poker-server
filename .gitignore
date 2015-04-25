@@ -55,3 +55,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Secret configuration files
+config.py

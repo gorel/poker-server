@@ -1,0 +1,3 @@
+Welcome to ACM's Poker Server!
+
+Please copy and paste {{ url }} into your browser to activate your account.

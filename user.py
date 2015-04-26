@@ -1,11 +1,24 @@
 import sqlite3
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from flask import current_app as app
+from flask import url_for, render_template
+from itsdangerous import URLSafeSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Constants
 SELECT_QUERY = "SELECT * FROM users WHERE username=?"
+ACTIVATE_QUERY = "UPDATE users SET active=1 WHERE username=?"
+
+ME = "nobody@acm.cs.purdue.edu"
+
 INDEX_COLUMN    = 0
 USERNAME_COLUMN = 1
 PASSWORD_COLUMN = 2
+EMAIL_COLUMN    = 3
+ACTIVE_COLUMN   = 4
+ADMIN_COLUMN    = 5
 
 class UserNotFoundError(Exception):
     pass
@@ -25,6 +38,9 @@ class User:
         self.user_id = user[INDEX_COLUMN]
         self.username = user[USERNAME_COLUMN]
         self.pw_hash = user[PASSWORD_COLUMN]
+        self.email = user[EMAIL_COLUMN]
+        self.active = user[ACTIVE_COLUMN]
+        self.is_admin = user[ADMIN_COLUMN]
 
     def is_authenticated(self):
         return True
@@ -33,7 +49,7 @@ class User:
         return not self.is_authenticated()
 
     def is_active(self):
-        return True
+        return self.active
 
     def get_id(self):
         return self.username
@@ -49,6 +65,36 @@ class User:
 
     def check_password(self, password):
         return check_password_hash(self.pw_hash, password)
+
+    def set_active(self):
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        data = (self.username, )
+        c.execute(ACTIVATE_QUERY, data)
+        conn.commit()
+        conn.close()
+
+    def send_confirmation_email(self):
+        s = URLSafeSerializer(app.config['SECRET_KEY'])
+        payload = s.dumps(self.username)
+        url = url_for('activate', payload=payload, _external=True)
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = "Activate your account"
+        msg['From'] = ME
+        msg['To'] = self.email
+
+        text = render_template('activate.txt', url=url)
+        html = render_template('activate.html', url=url)
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+
+        msg.attach(part1)
+        msg.attach(part2)
+
+        s = smtplib.SMTP('localhost', 9314)
+        s.sendmail(ME, self.email, msg.as_string())
+        s.quit()
 
     @classmethod
     def get(self_class, id):

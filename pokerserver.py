@@ -74,6 +74,12 @@ def account():
     else:
         return redirect(request.args.get('next') or url_for('login'))
 
+@app.route('/account/activate/<payload>')
+def activate(payload):
+    do_activate(payload)
+    return redirect(url_for('index'))
+
+
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():

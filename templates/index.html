@@ -3,9 +3,9 @@
 {% block title %}ACM Poker Server{% endblock %}
 
 {% block content %}
-    {% if not session.logged_in %}
-        <h1>You are not currently logged in</h1>
+    {% if current_user.is_authenticated() %}
+        <h1>You are currently logged in as {{ current_user.get_username() }}</h1>
     {% else %}
-        <h1>You are currently logged in as {{ session['username'] }}</h1>
+        <h1>You are not currently logged in</h1>
     {% endif %}
 {% endblock %}

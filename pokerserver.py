@@ -14,21 +14,19 @@
 
 # Imports
 import os
-from sqlite3 import dbapi2 as sqlite3
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory
-from flask_bootstrap import Bootstrap
-from flask.ext.appconfig import AppConfig
+from utils import *
+from user import User
+from flask import request, redirect, url_for, render_template, flash
+from flask.ext.login import login_required, current_user
 
-# App creation function
-def create_app(configfile=None):
-    app = Flask(__name__)
-    Bootstrap(app)
-    AppConfig(app, configfile)
-    return app
+# The app
+app = create_app(__name__)
+login_manager = create_login_manager(app)
 
-# Constants
-CONFIG_FILE = 'config.py'
-app = create_app(CONFIG_FILE)
+# Login manager handlers
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 # Error handlers
 @app.errorhandler(404)
@@ -39,50 +37,65 @@ def show_404_error(e):
 @app.route('/')
 @app.route('/index')
 @app.route('/index.html')
-def show_homepage():
-    if 'username' in session:
-        return render_template('index.html', name=session['username'])
-    else:
-        return render_template('index.html')
+def index():
+    return render_template('index.html')
+
+@app.route('/api')
+def api():
+    return render_template('api.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-def show_login():
-    if request.method == 'POST':
-        # Login user
+def login():
+    error = do_login()
+    if error:
+        # TODO: Add error output and try again
         pass
-    else:
-        return render_template('login.html')
+    return redirect(request.args.get('next') or url_for('index'))
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(request.args.get('next') or url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
-def show_register():
-    if request.method == 'POST':
-        # Register user
-        pass
-    else:
+def register():
+    if request.method == 'GET':
         return render_template('register.html')
+    else:
+        do_register()
+        return redirect(request.args.get('next') or url_for('index'))
 
 @app.route('/account')
-def show_account_page():
-    if 'username' in session:
+@login_required
+def account():
+    if current_user.is_authenticated():
         return render_template('account.html')
     else:
-        redirect(url_for('/login'))
+        return redirect(request.args.get('next') or url_for('login'))
 
 @app.route('/admin', methods=['GET', 'POST'])
-def show_admin_page():
+@login_required
+def admin():
     if request.method == 'POST':
-        # Do admin actions
-        pass
-    else:
-        return render_template('admin.html')
+        do_admin_actions()
+    return render_template('admin.html')
 
 @app.route('/tables')
-def show_tables():
+def tables():
     return render_template('tables.html')
 
 @app.route('/scoreboard')
-def show_scoreboard():
+def scoreboard():
     return render_template('scoreboard.html')
+
+@app.route('/play', methods=['GET', 'POST'])
+def play():
+    if request.method == 'GET':
+        return render_json()
+    else:
+        post_action()
+        return render_json(posted=True)
 
 # Start the server
 if __name__ == '__main__':

@@ -58,3 +58,6 @@ target/
 
 # Secret configuration files
 config.py
+
+# Database
+*.db

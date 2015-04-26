@@ -4,5 +4,10 @@
 
 {% block content %}
     <h1>Register</h1>
-    <!-- TODO! -->
+    <form method="POST">
+        <input type="text" placeholder="Username" name="username" value="{{request.form.username }}"><br>
+        <input type="password" placeholder="Password" name="password" value="{{request.form.password }}"><br>
+        <input type="password" placeholder="Confirm password" name="confirm" value="{{request.form.confirm }}"><br>
+        <input class="btn btn-default" type="submit" value="Login">
+    </form>
 {% endblock %}

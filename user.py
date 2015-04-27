@@ -1,3 +1,6 @@
+from dbhelper import *
+import string
+import random
 import sqlite3
 import smtplib
 from email.mime.text import MIMEText
@@ -9,40 +12,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # Constants
 SELECT_QUERY = "SELECT * FROM users WHERE username=?"
+SELECTALL_QUERY = "SELECT * FROM users"
 ACTIVATE_QUERY = "UPDATE users SET active=1 WHERE username=?"
-
+API_KEY_QUERY = "UPDATE users SET api_key=? WHERE id=?"
 ME = "nobody@acm.cs.purdue.edu"
-
-INDEX_COLUMN    = 0
-USERNAME_COLUMN = 1
-PASSWORD_COLUMN = 2
-EMAIL_COLUMN    = 3
-DISPLAY_COLUMN  = 4
-ACTIVE_COLUMN   = 5
-ADMIN_COLUMN    = 6
 
 class UserNotFoundError(Exception):
     pass
 
 class User:
-    def __init__(self, username):
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        data = (username, )
-        c.execute(SELECT_QUERY, data)
-        user = c.fetchone()
-        conn.close()
-
-        if user is None:
-            raise UserNotFoundError
-
-        self.user_id = user[INDEX_COLUMN]
-        self.username = user[USERNAME_COLUMN]
-        self.pw_hash = user[PASSWORD_COLUMN]
-        self.email = user[EMAIL_COLUMN]
-        self.display = user[DISPLAY_COLUMN]
-        self.active = user[ACTIVE_COLUMN]
-        self.is_admin = user[ADMIN_COLUMN]
+    def __init__(self, user):
+        self.user_id = user[USER_INDEX_COLUMN]
+        self.api_key = user[USER_API_KEY_COLUMN]
+        self.username = user[USER_USERNAME_COLUMN]
+        self.pw_hash = user[USER_PASSWORD_COLUMN]
+        self.email = user[USER_EMAIL_COLUMN]
+        self.display = user[USER_DISPLAY_COLUMN]
+        self.active = user[USER_ACTIVE_COLUMN]
+        self.is_admin = user[USER_ADMIN_COLUMN]
 
     def is_authenticated(self):
         return True
@@ -62,6 +49,9 @@ class User:
     def get_user_id(self):
         return self.user_id
 
+    def get_api_key(self):
+        return self.api_key
+
     def get_username(self):
         return self.username
 
@@ -78,10 +68,20 @@ class User:
         return check_password_hash(self.pw_hash, password)
 
     def set_active(self):
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect(app.config['DATABASE'])
         c = conn.cursor()
         data = (self.username, )
         c.execute(ACTIVATE_QUERY, data)
+        conn.commit()
+        conn.close()
+
+    def generate_api_key(self):
+        chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        api_key = ''.join(random.choice(chars) for _ in range(10))
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        data = (api_key, self.get_user_id(), )
+        c.execute(API_KEY_QUERY, data)
         conn.commit()
         conn.close()
 
@@ -117,11 +117,30 @@ class User:
         """.format(self.username, self.email, self.display, self.active, self.is_admin)
 
     @classmethod
-    def get(self_class, id):
+    def get(self_class, username):
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        data = (username, )
+        c.execute(SELECT_QUERY, data)
+        user = c.fetchone()
+        conn.close()
+
         try:
-            return self_class(id)
+            if user is None:
+                raise UserNotFoundError
+            return User(user)
         except UserNotFoundError:
             return None
+
+    @classmethod
+    def getall(self_class):
+        users = []
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        for row in c.execute(SELECTALL_QUERY):
+            users.append(User(row))
+        conn.close()
+        return users
 
     @classmethod
     def get_pw_hash(self_class, password):

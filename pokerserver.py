@@ -35,6 +35,11 @@ def show_404_error(e):
     error = errors.get(request.args.get('error'))
     return render_template('404.html', error=error), 404
 
+@app.errorhandler(403)
+def show_403_error(e):
+    error = errors.get(request.args.get('error'))
+    return render_template('403.html', error=error), 403
+
 # Routing information
 @app.route('/')
 @app.route('/index')
@@ -68,11 +73,13 @@ def register():
         error = do_register()
         return redirect(request.args.get('next') or url_for('index', error=error))
 
-@app.route('/account')
+@app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
+    error = None
     if current_user.is_authenticated():
-        error = errors.get(request.args.get('error'))
+        if request.method == 'POST':
+            error = current_user.generate_api_key()
         return render_template('account.html', error=error)
     else:
         return redirect(request.args.get('next') or url_for('login', next='/account'))
@@ -105,10 +112,15 @@ def activate(payload=None):
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
+    if not current_user.is_administrator():
+        abort(403)
+
+    message = None
     if request.method == 'POST':
-        do_admin_actions()
+        message = do_admin_actions()
     error = errors.get(request.args.get('error'))
-    return render_template('admin.html', error=error)
+    users = User.getall()
+    return render_template('admin.html', error=error, users=users, message=message)
 
 @app.route('/tables')
 def tables():
@@ -125,8 +137,8 @@ def play():
     if request.method == 'GET':
         return render_json()
     else:
-        post_action()
-        return render_json(posted=True)
+        posted = post_action()
+        return render_json(posted=posted)
 
 # Start the server
 if __name__ == '__main__':

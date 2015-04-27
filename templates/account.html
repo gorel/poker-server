@@ -39,6 +39,23 @@
                                     <td>No <span class="pull-right"><a href="/account/activate">Resend activation email</a></span></td>
                                     {% endif %}
                                 </tr>
+                                <tr>
+                                    <td class="text-muted">API Key</td>
+                                    {% if current_user.get_api_key() %}
+                                        <td>{{ current_user.get_api_key() }}</td>
+                                    {% else %}
+                                        <td>None</td>
+                                    {% endif %}
+                                    <td>
+                                        <span class="pull-right">
+                                            <form method="POST">
+                                                <td><button type="submit" class="btn btn-success">Generate API Key</button></td>
+                                            </form>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
                             </tbody>
                         </table>
                     </div> <!-- col-md-9 -->

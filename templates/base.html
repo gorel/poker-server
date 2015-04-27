@@ -75,15 +75,24 @@
         </div>
     </div>
     {% endif %}
+    {% if message %}
+    <br>
+    <div class="container">
+        <div class="alert alert-success">
+            <a class="close" data-dismiss="alert">&times;</a>
+            {{ message }}
+        </div>
+    </div>
+    {% endif %}
 
     {% block content -%}
     {%- endblock content %}
     </div>
 </div>
 
-{% block scripts %}
 <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
 <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+{% block scripts %}
 {%- endblock scripts %}
 
 {% block modals %}
@@ -98,7 +107,7 @@
                 <form method="POST" action='/login'>
                     <p><input type="text" class="span3" name="username" id="username" placeholder="Username"></p>
                     <p><input type="password" class="span3" name="password" id="password" placeholder="Password"></p>
-                    <p><input type="checkbox" class="span3" name="remember" value="remember">Remember Me</p>
+                    <label><input type="checkbox" class="span3" name="remember" value="remember">Remember Me</label>
                     <p><button type="submit" class="btn btn-primary">Sign in</button>
                     <a href="/reset_password">Forgot Password?</a>
                     </p>

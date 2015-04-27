@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}403 - Forbidden{% endblock %}
+{% block content %}
+<div class="col-md-12">
+    <div class="error-template">
+        <h1>Oops!</h1>
+        <h2>403 Forbidden</h2>
+        <div class="error-details">
+            You don't have access to the given page.
+        </div> <!-- error-details -->
+
+        <div class="error-actions">
+            <a href="/" class=btn btn-primary btn-lg><span class="glyphicon glyphicon-home"></span>
+                Home
+            </a>
+        </div> <!-- error-actions -->
+    </div> <!-- error-template -->
+</div> <!-- col-md-12 -->
+{% endblock %}

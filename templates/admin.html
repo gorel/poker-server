@@ -4,5 +4,49 @@
 
 {% block content %}
     <h1>Admin Settings</h1>
-    <!-- TODO! -->
+    <hr>
+    <h2>Users</h2>
+
+    <form role="form" method="POST">
+        <table class="table table-striped">
+            <thead>
+                <th>Display name</th>
+                <th>Email</th>
+                <th class="text-center">Account activated?</th>
+                <th class="text-center">Administrator account?</th>
+                <th class="text-center">Delete account</th>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.get_display() }}</td>
+                        <td>{{ user.get_email() }}</td>
+
+                        <input type="hidden" name="{{ 'active' ~ user.get_user_id() }}.hidden" value="0">
+                        <td class="text-center"><input type="checkbox" name="{{ 'active' ~ user.get_user_id() }}" id="{{'active' ~ user.get_user_id() }}" {% if user.is_active() %}checked{% endif %} onchange="javascript:toggle();" value="1"></td>
+
+                        <input type="hidden" name="{{ 'admin' ~ user.get_user_id() }}.hidden" value="0">
+                        <td class="text-center"><input type="checkbox" name="{{ 'admin' ~ user.get_user_id() }}" id="{{'admin' ~ user.get_user_id() }}" {% if user.is_administrator() %}checked{% endif %} onchange="javascript:toggle();" value="1"></td>
+
+                        <td class="text-center"><button type="button" class="btn btn-danger">Delete</button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="col-md-4">
+            <span class="pull-right hidden" id="hidebuttonbottom">
+                <button type="submit" class="btn btn-success">Save changes</button>
+            </span>
+        </div> <!-- col-md-4 -->
+    </form>
+{% endblock %}
+
+{% block scripts %}
+<script language="JavaScript">
+function toggle() {
+    $("#hidebuttontop").removeClass("hidden");
+    $("#hidebuttonbottom").removeClass("hidden");
+}
+</script>
 {% endblock %}

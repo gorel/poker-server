@@ -1,6 +1,7 @@
 from user import User
+from dbhelper import *
 import sqlite3
-from flask import Flask, request, flash, abort
+from flask import Flask, request, flash, abort, jsonify
 from flask import current_app as app
 from flask_bootstrap import Bootstrap
 from flask.ext.appconfig import AppConfig
@@ -12,7 +13,8 @@ CHECK_DISPLAY_QUERY = "SELECT * FROM users WHERE display=?"
 INSERT_QUERY = "INSERT INTO users ('username', 'password', 'email', 'display') VALUES(?, ?, ?, ?)"
 UPDATE_QUERY = "UPDATE users SET display=?, email=? WHERE id=?"
 UPDATE_PW_QUERY = "UPDATE users SET password=? WHERE id=?"
-DISPLAY_COLUMN = 4
+UPDATE_ACTIVE_QUERY = "UPDATE users SET active=? WHERE id=?"
+UPDATE_ADMIN_QUERY = "UPDATE users SET admin=? WHERE id=?"
 
 # Login Manager creation function
 def create_login_manager(app):
@@ -29,13 +31,16 @@ def create_app(name='app', configfile=CONFIG_FILE):
     return app
 
 def display_taken(display):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
     data = (display, )
     c.execute(CHECK_DISPLAY_QUERY, data)
     result = c.fetchone()
     conn.close()
-    return result and result[DISPLAY_COLUMN] != current_user.get_display()
+    if current_user.is_authenticated():
+        return result and result[USER_DISPLAY_COLUMN] != current_user.get_display()
+    else:
+        return result
 
 def do_login():
     username = request.form['username']
@@ -106,7 +111,7 @@ def do_account_update():
     if display_taken(new_display):
         return "display_in_use"
 
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
     if new_password:
         if new_password != confirm:
@@ -123,7 +128,7 @@ def add_user_to_db(user_data):
     # First salt and hash the password
     pw_hash = User.get_pw_hash(user_data['password'])
 
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
     data = (user_data['username'], pw_hash, user_data['email'], user_data['display'], )
     c.execute(INSERT_QUERY, data)
@@ -131,13 +136,40 @@ def add_user_to_db(user_data):
     conn.close()
 
 def do_admin_actions():
-    pass
+    conn = sqlite3.connect(app.config['DATABASE'])
+    c = conn.cursor()
+
+    for field in request.form:
+        value = int(request.form[field])
+        # Ignore the hidden attribute if the checkbox is active
+        if ".hidden" in field:
+            field = field.split(".hidden")[0]
+            if field in request.form:
+                continue
+
+
+        if "active" in field:
+            user = int(field.split("active")[1])
+            data = (value, user, )
+            c.execute(UPDATE_ACTIVE_QUERY, data)
+        elif "admin" in field:
+            user = int(field.split("admin")[1])
+            data = (value, user, )
+            c.execute(UPDATE_ADMIN_QUERY, data)
+    conn.commit()
+    conn.close()
+    return "The fields were updated successfully"
 
 def render_json(posted=False):
     key = request.args.get('key', None)
     if key is None:
-        # Return failure message
-        pass
+        return jsonify(error="No key given")
     else:
-        # Return game state (possibly with 'posted=True')
-        pass
+        user = User.get_by_key(key)
+        game_state = load_game_state(key, posted)
+        return jsonify(**game_state)
+
+def load_game_state(key, posted):
+    conn = sqlite3.connect(app.config['DATABASE'])
+    c = conn.cursor()
+

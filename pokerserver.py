@@ -15,6 +15,7 @@
 # Imports
 import os
 from utils import *
+from errors import errors
 from user import User
 from flask import request, redirect, url_for, render_template, flash
 from flask.ext.login import login_required, current_user
@@ -31,26 +32,26 @@ def load_user(user_id):
 # Error handlers
 @app.errorhandler(404)
 def show_404_error(e):
-    return render_template('404.html'), 404
+    error = errors.get(request.args.get('error'))
+    return render_template('404.html', error=error), 404
 
 # Routing information
 @app.route('/')
 @app.route('/index')
 @app.route('/index.html')
 def index():
-    return render_template('index.html')
+    error = errors.get(request.args.get('error'))
+    return render_template('index.html', error=error)
 
 @app.route('/api')
 def api():
-    return render_template('api.html')
+    error = errors.get(request.args.get('error'))
+    return render_template('api.html', error=error)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = do_login()
-    if error:
-        # TODO: Add error output and try again
-        pass
-    return redirect(request.args.get('next') or url_for('index'))
+    return redirect(request.args.get('next') or url_for('index', error=error))
 
 @app.route('/logout')
 @login_required
@@ -61,23 +62,44 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        error = errors.get(request.args.get('error'))
+        return render_template('register.html', error=error)
     else:
-        do_register()
-        return redirect(request.args.get('next') or url_for('index'))
+        error = do_register()
+        return redirect(request.args.get('next') or url_for('index', error=error))
 
 @app.route('/account')
 @login_required
 def account():
     if current_user.is_authenticated():
-        return render_template('account.html')
+        error = errors.get(request.args.get('error'))
+        return render_template('account.html', error=error)
     else:
-        return redirect(request.args.get('next') or url_for('login'))
+        return redirect(request.args.get('next') or url_for('login', next='/account'))
 
+@app.route('/account/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'GET':
+        if current_user.is_authenticated():
+            error = errors.get(request.args.get('error'))
+            return render_template('settings.html', error=error)
+        else:
+            return redirect(request.args.get('next') or url_for('login', next='/account/settings'))
+    else:
+        error = do_account_update()
+        return redirect(request.args.get('next') or url_for('account', error=error))
+
+@app.route('/account/activate')
 @app.route('/account/activate/<payload>')
-def activate(payload):
-    do_activate(payload)
-    return redirect(url_for('index'))
+def activate(payload=None):
+    if payload is None:
+        # TODO: Finish setting up email confirmation
+        #current_user.send_confirmation_email()
+        return redirect(request.args.get('next') or url_for('account'))
+    else:
+        do_activate(payload)
+        return redirect(url_for('index'))
 
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -85,15 +107,18 @@ def activate(payload):
 def admin():
     if request.method == 'POST':
         do_admin_actions()
-    return render_template('admin.html')
+    error = errors.get(request.args.get('error'))
+    return render_template('admin.html', error=error)
 
 @app.route('/tables')
 def tables():
-    return render_template('tables.html')
+    error = errors.get(request.args.get('error'))
+    return render_template('tables.html', error=error)
 
 @app.route('/scoreboard')
 def scoreboard():
-    return render_template('scoreboard.html')
+    error = errors.get(request.args.get('error'))
+    return render_template('scoreboard.html', error=error)
 
 @app.route('/play', methods=['GET', 'POST'])
 def play():

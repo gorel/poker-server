@@ -41,6 +41,9 @@
                 <li><a href="/scoreboard">Scoreboard</a></li>
                 {% if current_user.is_authenticated() %}
                     <li><a href="/account">My Account</a></li>
+                    {% if current_user.is_administrator() %}
+                        <li><a href="/admin">Administrator Controls</a></li>
+                    {% endif %}
                 {% else %}
                     <li><a href="" data-toggle="modal" data-target="#loginModal">Login</a></li>
                     <li><a href="/register">Register</a></li>
@@ -62,6 +65,17 @@
 
 <div class="container">
     <div class="row">
+
+    {% if error %}
+    <br>
+    <div class="container">
+        <div class="alert alert-danger">
+            <a class="close" data-dismiss="alert">&times;</a>
+            <strong>Error:</strong> {{ error }}
+        </div>
+    </div>
+    {% endif %}
+
     {% block content -%}
     {%- endblock content %}
     </div>
@@ -77,24 +91,23 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aira-hidden="true">&times;</button>
-                <h4 class="modal-title" id="loginModal">Login</h4>
+                <button type="button" class="close" data-dismiss="modal">x</button>
+                <h3>Login</h3>
             </div> <!-- modal-header -->
-
-            <form class="form form-medium" action="/login" method="POST">
-                <div class="modal-body">
-                    <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}"><br>
-                    <input type="password" placeholder="Password" name="password" value="{{ request.form.password }}"><br>
-                    <input type="checkbox" name="remember" value="{{ request.form.remember }}">Remember me<br>
-                </div> <!-- modal-body -->
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <a href="">
-                        <button class="btn btn-success">Login</button>
-                    </a>
-                </div> <!-- modal-footer -->
-            </form>
+            <div class="modal-body">
+                <form method="POST" action='/login'>
+                    <p><input type="text" class="span3" name="username" id="username" placeholder="Username"></p>
+                    <p><input type="password" class="span3" name="password" id="password" placeholder="Password"></p>
+                    <p><input type="checkbox" class="span3" name="remember" value="remember">Remember Me</p>
+                    <p><button type="submit" class="btn btn-primary">Sign in</button>
+                    <a href="/reset_password">Forgot Password?</a>
+                    </p>
+                </form>
+            </div> <!-- modal-body -->
+            <div class="modal-footer">
+                Need an account?
+                <a href="#" class="btn btn-primary">Register</a>
+            </div> <!-- modal-footer -->
         </div> <!-- modal-content -->
     </div> <!-- modal-dialog -->
 </div> <!-- modal -->

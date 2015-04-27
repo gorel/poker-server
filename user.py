@@ -17,8 +17,9 @@ INDEX_COLUMN    = 0
 USERNAME_COLUMN = 1
 PASSWORD_COLUMN = 2
 EMAIL_COLUMN    = 3
-ACTIVE_COLUMN   = 4
-ADMIN_COLUMN    = 5
+DISPLAY_COLUMN  = 4
+ACTIVE_COLUMN   = 5
+ADMIN_COLUMN    = 6
 
 class UserNotFoundError(Exception):
     pass
@@ -39,6 +40,7 @@ class User:
         self.username = user[USERNAME_COLUMN]
         self.pw_hash = user[PASSWORD_COLUMN]
         self.email = user[EMAIL_COLUMN]
+        self.display = user[DISPLAY_COLUMN]
         self.active = user[ACTIVE_COLUMN]
         self.is_admin = user[ADMIN_COLUMN]
 
@@ -51,6 +53,9 @@ class User:
     def is_active(self):
         return self.active
 
+    def is_administrator(self):
+        return self.is_admin
+
     def get_id(self):
         return self.username
 
@@ -59,6 +64,12 @@ class User:
 
     def get_username(self):
         return self.username
+
+    def get_email(self):
+        return self.email
+
+    def get_display(self):
+        return self.display
 
     def set_password(self, password):
         self.pw_hash = generate_password_hash(password)
@@ -95,6 +106,15 @@ class User:
         s = smtplib.SMTP('localhost', 9314)
         s.sendmail(ME, self.email, msg.as_string())
         s.quit()
+
+    def print_debug(self):
+        return """
+            <h3>Username: {}</h3>
+            <h3>Email: {}</h3>
+            <h3>Display: {}</h3>
+            <h3>Active: {}</h3>
+            <h3>Admin: {}</h3>
+        """.format(self.username, self.email, self.display, self.active, self.is_admin)
 
     @classmethod
     def get(self_class, id):

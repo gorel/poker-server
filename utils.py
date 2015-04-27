@@ -4,11 +4,15 @@ from flask import Flask, request, flash, abort
 from flask import current_app as app
 from flask_bootstrap import Bootstrap
 from flask.ext.appconfig import AppConfig
-from flask.ext.login import LoginManager, login_user, logout_user
+from flask.ext.login import LoginManager, login_user, logout_user, current_user
 
 # Constants
 CONFIG_FILE = 'config.py'
+CHECK_DISPLAY_QUERY = "SELECT * FROM users WHERE display=?"
 INSERT_QUERY = "INSERT INTO users ('username', 'password', 'email', 'display') VALUES(?, ?, ?, ?)"
+UPDATE_QUERY = "UPDATE users SET display=?, email=? WHERE id=?"
+UPDATE_PW_QUERY = "UPDATE users SET password=? WHERE id=?"
+DISPLAY_COLUMN = 4
 
 # Login Manager creation function
 def create_login_manager(app):
@@ -24,19 +28,28 @@ def create_app(name='app', configfile=CONFIG_FILE):
     AppConfig(app, configfile)
     return app
 
+def display_taken(display):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    data = (display, )
+    c.execute(CHECK_DISPLAY_QUERY, data)
+    result = c.fetchone()
+    conn.close()
+    return result and result[DISPLAY_COLUMN] != current_user.get_display()
+
 def do_login():
     username = request.form['username']
     password = request.form['password']
-    remember = request.form['remember']
+    remember = request.args.get('remember')
 
     user = User.get(username)
     if user and user.check_password(password):
-        login_user(user, remember=remember)
+        login_user(user, remember=remember, force=True)
         return None
     elif user:
-        return 'Incorrect password'
+        return "inc_password"
     else:
-        return 'Unknown username'
+        return "unknown_user"
 
 def do_register():
     user_data = {
@@ -48,24 +61,26 @@ def do_register():
     }
 
     user = User.get(user_data['username'])
-    print(user)
 
     if user_data['password'] != user_data['confirm']:
         # Passwords in the form do not match
-        return 'Passwords do not match'
+        return "pass_match"
+    elif display_taken(user_data['display']):
+        return "display_in_use"
     elif user and user.check_password(user_data['password']):
-        login_user(user)
+        login_user(user, force=True)
         return None
     elif user:
         # Username already taken
-        return 'Username already in use'
+        return "user_in_use"
     else:
         add_user_to_db(user_data)
 
         user = User.get(user_data['username'])
-        login_user(user)
+        login_user(user, force=True)
 
-        user.send_confirmation_email()
+        # TODO: Finish email confirmation
+        #user.send_confirmation_email()
         # No error
         return None
 
@@ -81,6 +96,28 @@ def do_activate(payload):
         abort(404)
     user.set_active()
     flash('Account activated')
+
+def do_account_update():
+    new_display = request.form.get('display')
+    new_email = request.form.get('email')
+    new_password = request.form.get('password')
+    confirm = request.form.get('confirm')
+
+    if display_taken(new_display):
+        return "display_in_use"
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    if new_password:
+        if new_password != confirm:
+            return "pass_match"
+        pw_hash = User.get_pw_hash(password)
+        data = (pw_hash, current_user.get_user_id())
+        c.execute(UPDATE_PW_QUERY, data)
+    data = (new_display, new_email, current_user.get_user_id())
+    c.execute(UPDATE_QUERY, data)
+    conn.commit()
+    conn.close()
 
 def add_user_to_db(user_data):
     # First salt and hash the password

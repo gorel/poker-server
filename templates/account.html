@@ -3,6 +3,55 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-    <h1>My Account</h1>
-    <h2>Username: {{ current_user.get_username() }}</h2>
+<br>
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-cs-offset-0 col-sm-offset-0 col-md-offset-3 col-lg-offset-3 toppad">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{ current_user.get_display() }}'s Profile</h3>
+        </div> <!-- panel-heading -->
+
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-3 col-lg-3" align="center">
+                    <div class="col-md-9 col-lg-9">
+                        {% if current_user.is_administrator %}
+                            <h4 class="text-danger">This is an administrator account</h4>
+                        {% endif %}
+                        <table class="table table-user-information">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted">Display Name:</td>
+                                    <td>{{ current_user.get_display() }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Username:</td>
+                                    <td>{{ current_user.get_username() }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Email:</td>
+                                    <td>{{ current_user.get_email() }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Account activated?</td>
+                                    {% if current_user.is_active() %}
+                                        <td>Yes</td>
+                                    {% else %}
+                                    <td>No <span class="pull-right"><a href="/account/activate">Resend activation email</a></span></td>
+                                    {% endif %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- col-md-9 -->
+                </div> <!-- col-md-3 -->
+
+                <hr>
+
+                <div class="col-md-3">
+                    <a href='/account/settings'>Edit Settings</a>
+                    <span class="pull-right"><a href='/logout'>Logout</a></span>
+                </div> <!-- col-md-3 -->
+            </div> <!-- row -->
+        </div> <!-- panel-body -->
+    </div> <!-- panel -->
+</div> <!-- col-xs-12 -->
 {% endblock %}

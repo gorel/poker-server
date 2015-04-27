@@ -1,0 +1,53 @@
+<!doctype html>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<br>
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-cs-offset-0 col-sm-offset-0 col-md-offset-3 col-lg-offset-3 toppad">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Edit Account Settings</h3>
+        </div> <!-- panel-heading -->
+
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-3 col-lg-3" align="center">
+                    <div class="col-md-9 col-lg-9">
+                        {% if current_user.is_administrator %}
+                            <h4 class="text-danger">This is an administrator account</h4>
+                        {% endif %}
+                        <form method="POST" action="/account/settings">
+                            <table class="table table-user-information">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted">Display Name:</td>
+                                        <td><input type="text" name="display" id="display" class="form-control input-md" value="{{ current_user.get_display() }}" tabindex="3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Email Address:</td>
+                                        <td><input type="text" name="email" id="email" class="form-control input-md" value="{{ current_user.get_email() }}" tabindex="3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Password:</td>
+                                        <td><input type="password" name="password" id="password" class="form-control input-md" placeholder="Keep current password"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Confirm Password:</td>
+                                        <td><input type="password" name="confirm" id="confirm" class="form-control input-md" placeholder="Keep current password"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <hr>
+
+                            <div class="col-xs-12 col-md-6"><input type="submit" value="Save changes" class="btn btn-primary btn-block btn-lg" tabindex="7"></div>
+                        </form>
+
+                    </div> <!-- col-md-9 -->
+                </div> <!-- col-md-3 -->
+            </div> <!-- row -->
+        </div> <!-- panel-body -->
+    </div> <!-- panel -->
+</div> <!-- col-xs-12 -->
+{% endblock %}

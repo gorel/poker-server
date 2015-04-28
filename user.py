@@ -12,6 +12,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # Constants
 SELECT_QUERY = "SELECT * FROM users WHERE username=?"
+SELECT_BY_EMAIL_QUERY = "SELECT * FROM users WHERE email=?"
+SELECT_BY_PW_RESET_QUERY = "SELECT * FROM users WHERE pw_reset=?"
 SELECTALL_QUERY = "SELECT * FROM users"
 ACTIVATE_QUERY = "UPDATE users SET active=1 WHERE username=?"
 API_KEY_QUERY = "UPDATE users SET api_key=? WHERE id=?"
@@ -30,6 +32,7 @@ class User:
         self.display = user[USER_DISPLAY_COLUMN]
         self.active = user[USER_ACTIVE_COLUMN]
         self.is_admin = user[USER_ADMIN_COLUMN]
+        self.pw_reset_key = user[USER_PW_RESET_COLUMN]
 
     def is_authenticated(self):
         return True
@@ -60,6 +63,9 @@ class User:
 
     def get_display(self):
         return self.display
+
+    def get_pw_reset_key(self):
+        return self.pw_reset_key
 
     def set_password(self, password):
         self.pw_hash = generate_password_hash(password)
@@ -125,6 +131,36 @@ class User:
         user = c.fetchone()
         conn.close()
 
+        try:
+            if user is None:
+                raise UserNotFoundError
+            return User(user)
+        except UserNotFoundError:
+            return None
+
+    @classmethod
+    def get_by_email(self_class, email):
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        data = (email, )
+        c.execute(SELECT_BY_EMAIL_QUERY, data)
+        user = c.fetchone()
+        conn.close()
+        try:
+            if user is None:
+                raise UserNotFoundError
+            return User(user)
+        except UserNotFoundError:
+            return None
+
+    @classmethod
+    def get_by_pw_reset_key(self_class, pw_reset_key):
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        data = (pw_reset_key, )
+        c.execute(SELECT_BY_PW_RESET_QUERY, data)
+        user = c.fetchone()
+        conn.close()
         try:
             if user is None:
                 raise UserNotFoundError

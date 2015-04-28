@@ -75,12 +75,12 @@
         </div>
     </div>
     {% endif %}
-    {% if message %}
+    {% if info %}
     <br>
     <div class="container">
         <div class="alert alert-success">
             <a class="close" data-dismiss="alert">&times;</a>
-            {{ message }}
+            {{ info }}
         </div>
     </div>
     {% endif %}
@@ -109,13 +109,11 @@
                     <p><input type="password" class="span3" name="password" id="password" placeholder="Password"></p>
                     <label><input type="checkbox" class="span3" name="remember" value="remember">Remember Me</label>
                     <p><button type="submit" class="btn btn-primary">Sign in</button>
-                    <a href="/reset_password">Forgot Password?</a>
-                    </p>
-                </form>
+                    <a href="/account/forgot">Forgot Password?</a>
             </div> <!-- modal-body -->
             <div class="modal-footer">
                 Need an account?
-                <a href="#" class="btn btn-primary">Register</a>
+                <a href="/register" class="btn btn-primary">Register</a>
             </div> <!-- modal-footer -->
         </div> <!-- modal-content -->
     </div> <!-- modal-dialog -->

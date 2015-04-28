@@ -28,17 +28,17 @@
                         <input type="hidden" name="{{ 'admin' ~ user.get_user_id() }}.hidden" value="0">
                         <td class="text-center"><input type="checkbox" name="{{ 'admin' ~ user.get_user_id() }}" id="{{'admin' ~ user.get_user_id() }}" {% if user.is_administrator() %}checked{% endif %} onchange="javascript:toggle();" value="1"></td>
 
-                        <td class="text-center"><button type="button" class="btn btn-danger">Delete</button></td>
+                        <td class="text-center"><button type="button" class="btn btn-danger" id="{{ 'delete' ~ user.get_user_id() }}" data-toggle="modal" data-target="#confirmDeleteModal" onclick="setupDeleteModal('{{ user.get_display() }}')">Delete</button></td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <div class="col-md-4">
+        <div class="col-md-12 col-lg-12">
             <span class="pull-right hidden" id="hidebuttonbottom">
                 <button type="submit" class="btn btn-success">Save changes</button>
             </span>
-        </div> <!-- col-md-4 -->
+        </div> <!-- col-md-12 -->
     </form>
 {% endblock %}
 
@@ -48,5 +48,38 @@ function toggle() {
     $("#hidebuttontop").removeClass("hidden");
     $("#hidebuttonbottom").removeClass("hidden");
 }
+
+function setupDeleteModal(name) {
+    $('#acct_name').html(name);
+    $('#confirmDeleteButton').attr('href', '/account/delete/' + name);
+}
+
+//The following lines make sure the admin can't delete their own account
+my_id = {{ current_user.get_user_id() }};
+$('#admin' + my_id).attr("disabled", true);
+$('#delete' + my_id).attr("disabled", true);
 </script>
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledBy="confirmDeleteModal" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">x</button>
+                <h3>Are you sure?</h3>
+            </div> <!-- modal-header -->
+
+            <div class="modal-body">
+                <p>Are you sure you wish to delete '<span id="acct_name"></span>'?</p>
+                <p>This action cannot be reversed.</p>
+            </div> <!-- modal-body -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteButton" class="btn btn-danger btn-ok">Confirm Delete</a>
+            </div> <!-- modal-footer -->
+        </div> <!-- modal-content -->
+    </div> <!-- modal-dialog -->
+</div> <!-- modal -->
 {% endblock %}

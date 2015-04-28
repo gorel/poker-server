@@ -15,7 +15,6 @@
 # Imports
 import os
 from utils import *
-from errors import errors
 from user import User
 from flask import request, redirect, url_for, render_template, flash
 from flask.ext.login import login_required, current_user
@@ -32,21 +31,20 @@ def load_user(user_id):
 # Error handlers
 @app.errorhandler(404)
 def show_404_error(e):
-    error = errors.get(request.args.get('error'))
-    return render_template('404.html', error=error), 404
+    return render_template('404.html'), 404
 
 @app.errorhandler(403)
 def show_403_error(e):
-    error = errors.get(request.args.get('error'))
-    return render_template('403.html', error=error), 403
+    return render_template('403.html'), 403
 
 # Routing information
 @app.route('/')
 @app.route('/index')
 @app.route('/index.html')
 def index():
-    error = errors.get(request.args.get('error'))
-    return render_template('index.html', error=error)
+    info = request.args.get('info')
+    error = request.args.get('error')
+    return render_template('index.html', info=info, error=error)
 
 @app.route('/api')
 def api():
@@ -55,14 +53,14 @@ def api():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = do_login()
-    return redirect(request.args.get('next') or url_for('index', error=error))
+    messages = do_login()
+    return redirect(request.args.get('next') or url_for('index', **messages))
 
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    return redirect(request.args.get('next') or url_for('index'))
+    messages = do_logout()
+    return redirect(request.args.get('next') or url_for('index', **messages))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -70,32 +68,25 @@ def register():
         error = errors.get(request.args.get('error'))
         return render_template('register.html', error=error)
     else:
-        error = do_register()
-        return redirect(request.args.get('next') or url_for('index', error=error))
+        messages = do_register()
+        return redirect(request.args.get('next') or url_for('index', **messages))
 
 @app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    error = None
-    if current_user.is_authenticated():
-        if request.method == 'POST':
-            error = current_user.generate_api_key()
-        return render_template('account.html', error=error)
-    else:
-        return redirect(request.args.get('next') or url_for('login', next='/account'))
+    if request.method == 'POST':
+        current_user.generate_api_key()
+    return render_template('account.html')
 
 @app.route('/account/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     if request.method == 'GET':
-        if current_user.is_authenticated():
-            error = errors.get(request.args.get('error'))
-            return render_template('settings.html', error=error)
-        else:
-            return redirect(request.args.get('next') or url_for('login', next='/account/settings'))
+        error = errors.get(request.args.get('error'))
+        return render_template('settings.html', error=error)
     else:
-        error = do_account_update()
-        return redirect(request.args.get('next') or url_for('account', error=error))
+        messages = do_account_update()
+        return redirect(request.args.get('next') or url_for('account', **messages))
 
 @app.route('/account/activate')
 @app.route('/account/activate/<payload>')
@@ -108,6 +99,32 @@ def activate(payload=None):
         do_activate(payload)
         return redirect(url_for('index'))
 
+@app.route('/account/forgot', methods=['GET', 'POST'])
+@app.route('/account/forgot/<payload>', methods=['GET', 'POST'])
+def forgot(payload=None):
+    if payload is None:
+        if request.method == 'POST':
+            messages = send_password_reset()
+            return redirect(request.args.get('next') or url_for('index' **messages))
+        else:
+            error = errors.get(request.args.get('error'))
+            return render_template('forgot.html', error=error)
+    else:
+        if request.method == 'POST':
+            messages = do_password_reset(payload)
+            return redirect(request.args.get('next') or url_for('index', **messages))
+        else:
+            error = errors.get(request.args.get('error'))
+            return render_template('reset.html', error=error)
+
+@app.route('/account/delete/<name>')
+@login_required
+def delete(name):
+    if not current_user.is_administrator():
+        abort(403)
+
+    messages = do_delete(name)
+    return redirect(request.args.get('next') or url_for('admin', **messages))
 
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -115,12 +132,11 @@ def admin():
     if not current_user.is_administrator():
         abort(403)
 
-    message = None
+    messages = {}
     if request.method == 'POST':
-        message = do_admin_actions()
-    error = errors.get(request.args.get('error'))
+        messages = do_admin_actions()
     users = User.getall()
-    return render_template('admin.html', error=error, users=users, message=message)
+    return render_template('admin.html', users=users, **messages)
 
 @app.route('/tables')
 def tables():

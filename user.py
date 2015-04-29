@@ -1,10 +1,10 @@
 from dbhelper import *
+import email_helper
 import string
 import random
 import sqlite3
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import datetime
 from flask import current_app as app
 from flask import url_for, render_template
 from itsdangerous import URLSafeSerializer
@@ -15,6 +15,7 @@ SELECT_QUERY = "SELECT * FROM users WHERE username=?"
 SELECT_BY_EMAIL_QUERY = "SELECT * FROM users WHERE email=?"
 SELECT_BY_PW_RESET_QUERY = "SELECT * FROM users WHERE pw_reset=?"
 SELECTALL_QUERY = "SELECT * FROM users"
+UPDATE_PW_RESET_QUERY = "UPDATE users SET pw_reset=? WHERE id=?"
 ACTIVATE_QUERY = "UPDATE users SET active=1 WHERE username=?"
 API_KEY_QUERY = "UPDATE users SET api_key=? WHERE id=?"
 ME = "nobody@acm.cs.purdue.edu"
@@ -82,8 +83,8 @@ class User:
         conn.close()
 
     def generate_api_key(self):
-        chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-        api_key = ''.join(random.choice(chars) for _ in range(10))
+        chars = string.ascii_lowercase + string.digits
+        api_key = ''.join(random.choice(chars) for _ in range(12))
         conn = sqlite3.connect(app.config['DATABASE'])
         c = conn.cursor()
         data = (api_key, self.get_user_id(), )
@@ -91,27 +92,34 @@ class User:
         conn.commit()
         conn.close()
 
-    def send_confirmation_email(self):
+        self.api_key = api_key
+
+    def send_activation_email(self):
         s = URLSafeSerializer(app.config['SECRET_KEY'])
         payload = s.dumps(self.username)
         url = url_for('activate', payload=payload, _external=True)
 
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = "Activate your account"
-        msg['From'] = ME
-        msg['To'] = self.email
+        subject = "Activate your account"
+        text = render_template("activate.txt", url=url)
+        html = render_template("activate.html", url=url)
+        email_helper.send_email(self.get_email(), subject, text, html)
 
-        text = render_template('activate.txt', url=url)
-        html = render_template('activate.html', url=url)
-        part1 = MIMEText(text, 'plain')
-        part2 = MIMEText(html, 'html')
+    def send_pw_reset_email(self):
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        reset_link = self.get_display() + str(datetime.datetime.now())
+        reset_link_hashed = User.get_pw_hash(reset_link)
+        data = (reset_link_hashed, self.get_user_id(), )
+        c.execute(UPDATE_PW_RESET_QUERY, data)
+        conn.commit()
+        conn.close()
 
-        msg.attach(part1)
-        msg.attach(part2)
+        url = url_for('forgot', payload=reset_link_hashed, _external=True)
 
-        s = smtplib.SMTP('localhost', 9314)
-        s.sendmail(ME, self.email, msg.as_string())
-        s.quit()
+        subject = "Password reset email for ACM Poker"
+        text = render_template("pw_reset.txt", user=self, url=url)
+        html = render_template("pw_reset.html", user=self, url=url)
+        email_helper.send_email(self.get_email(), subject, text, html)
 
     def print_debug(self):
         return """

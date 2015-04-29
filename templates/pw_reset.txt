@@ -1,0 +1,4 @@
+
+{{ user.get_display() }}'s password reset link
+
+Please copy and paste {{ url }} into your browser to activate your account.

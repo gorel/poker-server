@@ -1,0 +1,17 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="{{ bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap') }}" media="screen">
+<!--link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.cerulean.min.css') }}"-->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.lumen.min.css') }}">
+
+<body>
+    <div class="container">
+        <div class="row">
+            <h1>{{ user.get_display() }}'s password reset link</h1>
+            <p>Please click <a href="{{ url }}">this link</a> to reset your password.</p>
+            <p>Or copy and paste {{ url }} into your browser.</p>
+        </div>
+    </div>
+<script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+<script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+</body>

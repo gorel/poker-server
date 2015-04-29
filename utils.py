@@ -13,10 +13,9 @@ CONFIG_FILE = 'config.py'
 CHECK_DISPLAY_QUERY = "SELECT * FROM users WHERE display=?"
 INSERT_QUERY = "INSERT INTO users ('username', 'password', 'email', 'display') VALUES(?, ?, ?, ?)"
 UPDATE_QUERY = "UPDATE users SET display=?, email=? WHERE id=?"
-UPDATE_PW_QUERY = "UPDATE users SET password=? WHERE id=?"
+UPDATE_PW_QUERY = "UPDATE users SET password=?, pw_reset=NULL WHERE id=?"
 UPDATE_ACTIVE_QUERY = "UPDATE users SET active=? WHERE id=?"
 UPDATE_ADMIN_QUERY = "UPDATE users SET admin=? WHERE id=?"
-UPDATE_PW_RESET_QUERY = "UPDATE users SET pw_reset=? WHERE id=?"
 DELETE_QUERY = "DELETE FROM users WHERE display=?"
 
 # Login Manager creation function
@@ -92,8 +91,7 @@ def do_register():
         user = User.get(user_data['username'])
         login_user(user, force=True)
 
-        # TODO: Finish email confirmation
-        #user.send_confirmation_email()
+        user.send_activation_email()
     return messages
 
 def do_activate(payload):
@@ -142,16 +140,7 @@ def send_password_reset():
     if user is None:
         messages['error'] = errors.get("unknown_user")
     else:
-        conn = sqlite3.connect(app.config['DATABASE'])
-        c = conn.cursor()
-        reset_link = user.get_display() + str(datetime.datetime.now())
-        reset_link_hashed = User.get_pw_hash(reset_link)
-        data = (reset_link_hashed, user.get_user_id(), )
-        c.execute(UPDATE_PW_RESET_QUERY, data)
-        conn.commit()
-        conn.close()
-
-        #TODO: Send reset link to email
+        user.send_pw_reset_email()
         messages['info'] = infos.get("pw_reset_email")
     return messages
 
@@ -171,12 +160,10 @@ def do_password_reset(payload):
 
         data = (new_pass, user.get_user_id(), )
         c.execute(UPDATE_PW_QUERY, data)
-        
-        data = (None, user.get_user_id(), )
-        c.execute(UPDATE_PASSWORD_RESET_QUERY, data)
-
         conn.commit()
         conn.close()
+        login_user(user, force=True)
+        messages['info'] = infos.get("reset_success")
     return messages
 
 def add_user_to_db(user_data):
@@ -232,8 +219,18 @@ def do_admin_actions():
     messages['info'] = infos.get("field_success")
     return messages
 
-def render_json(posted=False):
-    key = request.args.get('key', None)
+def post_action(user, action, amount):
+    if action is None:
+        return False
+    elif action is "bet" and amount is None:
+        return False
+    else:
+        # TODO: Post action to action table
+        return True
+
+
+def render_json(user, posted=False):
+    key = user.get_api_key()
     if key is None:
         return jsonify(error="No key given")
     else:
@@ -244,3 +241,4 @@ def render_json(posted=False):
 def load_game_state(key, posted):
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
+    #TODO: Load game state

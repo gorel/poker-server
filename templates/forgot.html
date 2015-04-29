@@ -1,0 +1,16 @@
+<!doctype html>
+{% extends "base.html" %}
+{% block title %}ACM Poker Server{% endblock %}
+
+{% block content %}
+    <h1>Reset your password</h1>
+    <hr>
+    <form role="form" method="POST">
+        <div class="col-sm-6 col-md-6">
+            <div class="form-group">
+                <input type="text" id="email" name="email" class="form-control input-md" placeholder="Email address" tabindex="3">
+                <input type="submit" value="Send reset link" class="btn btn-primary btn-block btn-md"></button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

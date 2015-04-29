@@ -16,7 +16,7 @@
 import os
 from utils import *
 from user import User
-from flask import request, redirect, url_for, render_template, flash
+from flask import request, redirect, url_for, render_template, flash, Response
 from flask.ext.login import login_required, current_user
 
 # The app
@@ -29,13 +29,18 @@ def load_user(user_id):
     return User.get(user_id)
 
 # Error handlers
-@app.errorhandler(404)
-def show_404_error(e):
-    return render_template('404.html'), 404
+@app.errorhandler(401)
+def show_401_error(e):
+    page = render_template('401.html')
+    return Response(page, 401, {'WWWAuthenticate':'Basic realm="Login Required'})
 
 @app.errorhandler(403)
 def show_403_error(e):
     return render_template('403.html'), 403
+
+@app.errorhandler(404)
+def show_404_error(e):
+    return render_template('404.html'), 404
 
 # Routing information
 @app.route('/')
@@ -92,8 +97,7 @@ def settings():
 @app.route('/account/activate/<payload>')
 def activate(payload=None):
     if payload is None:
-        # TODO: Finish setting up email confirmation
-        #current_user.send_confirmation_email()
+        current_user.send_activation_email()
         return redirect(request.args.get('next') or url_for('account'))
     else:
         do_activate(payload)
@@ -105,7 +109,7 @@ def forgot(payload=None):
     if payload is None:
         if request.method == 'POST':
             messages = send_password_reset()
-            return redirect(request.args.get('next') or url_for('index' **messages))
+            return redirect(request.args.get('next') or url_for('index', **messages))
         else:
             error = errors.get(request.args.get('error'))
             return render_template('forgot.html', error=error)
@@ -115,13 +119,13 @@ def forgot(payload=None):
             return redirect(request.args.get('next') or url_for('index', **messages))
         else:
             error = errors.get(request.args.get('error'))
-            return render_template('reset.html', error=error)
+            return render_template('reset.html', error=error, payload=payload)
 
 @app.route('/account/delete/<name>')
 @login_required
 def delete(name):
     if not current_user.is_administrator():
-        abort(403)
+        abort(401)
 
     messages = do_delete(name)
     return redirect(request.args.get('next') or url_for('admin', **messages))
@@ -130,7 +134,7 @@ def delete(name):
 @login_required
 def admin():
     if not current_user.is_administrator():
-        abort(403)
+        abort(401)
 
     messages = {}
     if request.method == 'POST':
@@ -148,12 +152,16 @@ def scoreboard():
     error = errors.get(request.args.get('error'))
     return render_template('scoreboard.html', error=error)
 
-@app.route('/play', methods=['GET', 'POST'])
-def play():
+@app.route('/play/<apikey>/<action>/<amount>', methods=['GET', 'POST'])
+def play(apikey=None, action=None, amount=None):
+    user = User.get_by_api_key(apikey)
+    if user is None:
+        abort(403)
+
     if request.method == 'GET':
-        return render_json()
+        return render_json(user)
     else:
-        posted = post_action()
+        posted = post_action(user, action, amount)
         return render_json(posted=posted)
 
 # Start the server

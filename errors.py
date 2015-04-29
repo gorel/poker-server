@@ -11,5 +11,6 @@ errors = {
 infos = {
     "field_success" : "The fields were updated successfully",
     "pw_reset_email": "An email has been sent with instructions on resetting your password",
-    "logout_success": "You have successfully logged out"
+    "logout_success": "You have successfully logged out",
+    "reset_success" : "Your password has been successfully reset"
 }

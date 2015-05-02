@@ -26,7 +26,7 @@ class UserNotFoundError(Exception):
 class User:
     def __init__(self, user):
         self.user_id = user[USER_INDEX_COLUMN]
-        self.api_key = user[USER_API_KEY_COLUMN]
+        self.api_key = user[USER_API_KEY_COLUMN] or self.generate_api_key()
         self.username = user[USER_USERNAME_COLUMN]
         self.pw_hash = user[USER_PASSWORD_COLUMN]
         self.email = user[USER_EMAIL_COLUMN]

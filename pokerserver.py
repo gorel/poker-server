@@ -154,14 +154,14 @@ def scoreboard():
 
 @app.route('/play/<apikey>/<action>/<amount>', methods=['GET', 'POST'])
 def play(apikey=None, action=None, amount=None):
-    user = User.get_by_api_key(apikey)
-    if user is None:
+    player = Player.get(apikey)
+    if player is None:
         abort(403)
 
     if request.method == 'GET':
-        return render_json(user)
+        return render_json(player)
     else:
-        posted = post_action(user, action, amount)
+        posted = post_action(player, action, amount)
         return render_json(posted=posted)
 
 # Start the server

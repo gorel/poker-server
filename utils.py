@@ -2,6 +2,7 @@ from user import User
 from errors import *
 from dbhelper import *
 import sqlite3
+from itsdangerous import URLSafeSerializer
 from flask import Flask, request, flash, abort, jsonify
 from flask import current_app as app
 from flask_bootstrap import Bootstrap
@@ -219,26 +220,26 @@ def do_admin_actions():
     messages['info'] = infos.get("field_success")
     return messages
 
-def post_action(user, action, amount):
+def post_action(player, action, amount=None):
+    valid_actions = ["fold", "check", "call", "bet"]
     if action is None:
         return False
     elif action is "bet" and amount is None:
+        return False
+    elif action not in valid_actions:
         return False
     else:
         # TODO: Post action to action table
         return True
 
 
-def render_json(user, posted=False):
-    key = user.get_api_key()
-    if key is None:
-        return jsonify(error="No key given")
-    else:
-        user = User.get_by_key(key)
-        game_state = load_game_state(key, posted)
-        return jsonify(**game_state)
+def render_json(player, posted=False):
+    game_state = load_game_state(player, posted)
+    return jsonify(**game_state)
 
-def load_game_state(key, posted):
+def load_game_state(player, posted):
+    table_state = TableState.get(player)
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
     #TODO: Load game state
+    return None

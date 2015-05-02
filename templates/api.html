@@ -3,7 +3,212 @@
 {% block title %}API{% endblock %}
 
 {% block content %}
+<div class="col-sm-12 col-md-12 col-lg-12">
     <h1>API</h1>
-    <hr>
-    <!-- TODO! -->
+    <br>
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <strong>GET</strong>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    /&lt;apikey&gt;
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <p>Get the current state of the game in JSON format</p>
+                        <hr>
+                        <h4>Parameters</h4>
+                        <p><strong>apikey:</strong> Your personal API key</p>
+                        <hr>
+                        <h4>Return value</h4>
+                        <p>The game state in JSON format</p>
+                        <p><a href="#example_response">Example response</a></p>
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <strong>POST</strong>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    /&lt;apikey&gt;/fold
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <p>Fold the current hand<p>
+                        <hr>
+                        <h4>Parameters</h4>
+                        <p><strong>apikey:</strong> Your personal API key</p>
+                        <hr>
+                        <h4>Return value</h4>
+                        <p>The game state in JSON format with the additional parameter <strong>posted: true</strong></p>
+                        <p><a href="#example_response">Example response</a></p>
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <strong>POST</strong>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    /&lt;apikey&gt;/check
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <p>Check the current hand<p>
+                        <p>(Only applies if you have already matched the current bet)</p>
+                        <hr>
+                        <h4>Parameters</h4>
+                        <p><strong>apikey:</strong> Your personal API key</p>
+                        <hr>
+                        <h4>Return value</h4>
+                        <p>The game state in JSON format with the additional parameter <strong>posted: true</strong></p>
+                        <p><a href="#example_response">Example response</a></p>
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <strong>POST</strong>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    /&lt;apikey&gt;/call
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <p>Call the current bet</p>
+                        <hr>
+                        <h4>Parameters</h4>
+                        <p><strong>apikey:</strong> Your personal API key</p>
+                        <hr>
+                        <h4>Return value</h4>
+                        <p>The game state in JSON format with the additional parameter <strong>posted: true</strong></p>
+                        <p><a href="#example_response">Example response</a></p>
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <strong>POST</strong>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    /&lt;apikey&gt;/bet/&lt;amount&gt;
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <p>Bet an amount of money <strong>OVER</strong> the current call amount</p>
+                        <hr>
+                        <h4>Parameters</h4>
+                        <p><strong>apikey:</strong> Your personal API key</p>
+                        <p><strong>amount:</strong> The amount to bet in excess of the current call amount</p>
+                        <hr>
+                        <h4>Return value</h4>
+                        <p>The game state in JSON format with the additional parameter <strong>posted: true</strong></p>
+                        <p><a href="#example_response">Example response</a></p>
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+    <div id="example_response" class="col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    Example JSON Response
+                </h3>
+            </div> <!-- panel-heading -->
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <pre class="col-sm-6 col-md-6 col-lg-6">
+{
+    "round_id": 1,
+    "initial_stack": 1000,
+    "stack": 700,
+    "current_bet": 375,
+    "call_amount": 75,
+    "current_pot": 975,
+    "phase": PHASE_RIVER,
+    "my_turn": false,
+    "hand": ["AH", "QH"],
+    "community": ["KH", "JD", "4C", "AC", "QC"],
+    "opponents": [
+        {
+            "name": "Ralph",
+            "initial_stack": 1000,
+            "stack": 700,
+            "folded": false
+        },
+        {
+            "name": "Steve",
+            "initial_stack": 1000,
+            "stack": 625,
+            "folded": false
+        },
+        {
+            "name": "Jack",
+            "intial_stack": 1000,
+            "stack": 1000,
+            "folded": true
+        }
+    ],
+    "posted": true
+}
+                        </pre>
+                        <div class="col-sm-6 col-md-6 col-lg-6">
+                            <h3>Explanation</h3>
+                            <p>round_id: an ascending number used to represent which "hand" is currently being played</p>
+                            <p>initial_stack: how many chips the player had at the beginning of the round</p>
+                            <p>stack: how many chips the player currently has</p>
+                            <p>current_bet: what the current bet is for each player at the table</p>
+                            <p>call_amount: the amount required to call the current bet</p>
+                            <p>current_pot: total amount of chips currently in the pot</p>
+                            <p>phase: one of PHASE_PREFLOP, PHASE_FLOP, PHASE_TURN, or PHASE_RIVER</p>
+                            <p>my_turn: a boolean representing whether or not it is your turn to act</p>
+                            <p>hand: an array of 0-2 cards representing your two hole cards</p>
+                            <p>community: an array of 0-5 cards representing the community cards</p>
+                            <p>opponents: an array of all opponents currently at your table</p>
+                            <p>posted: only sent after a POST; set to true to indicate success</p>
+                            <hr>
+
+                            <h3>Card Format</h3>
+                            <p>Cards will be given as a string of two characters.  The first character represents the RANK of the card.  This will be noted by a number 2-9, T (for ten), J (for Jack), Q (for Queen), K (for King), or A (for Ace).  The second character represents the SUIT of the card.  This will be noted by C (for Clubs), D (for Diamonds), S (for Spades), or H (for Hearts).</p>
+                            <p>In other words, each card conforms to the regular expression <code>[2-9TJQKA][CDSH]</code>.</p>
+                        </div> <!-- col-sm-6 -->
+                    </div> <!-- col-sm-12 -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- col-sm-12 -->
+
+</div> <!-- col-sm-12 -->
 {% endblock %}

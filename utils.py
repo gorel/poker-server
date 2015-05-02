@@ -1,6 +1,7 @@
 from user import User
 from errors import *
 from dbhelper import *
+from gamehelper import *
 import sqlite3
 from itsdangerous import URLSafeSerializer
 from flask import Flask, request, flash, abort, jsonify
@@ -220,16 +221,15 @@ def do_admin_actions():
     messages['info'] = infos.get("field_success")
     return messages
 
-def post_action(player, action, amount=None):
-    valid_actions = ["fold", "check", "call", "bet"]
+def post_action(player, action, amount=0):
     if action is None:
         return False
     elif action is "bet" and amount is None:
         return False
-    elif action not in valid_actions:
+    elif action not in VALID_ACTIONS:
         return False
     else:
-        # TODO: Post action to action table
+        player.post_action(action, amount)
         return True
 
 
@@ -239,7 +239,24 @@ def render_json(player, posted=False):
 
 def load_game_state(player, posted):
     table_state = TableState.get(player)
-    conn = sqlite3.connect(app.config['DATABASE'])
-    c = conn.cursor()
-    #TODO: Load game state
-    return None
+    opponents = Player.get_opponents(player)
+    bet_so_far = player.get_initial_stack() - player.get_stack()
+    call_amount = table_state.get_current_bet - bet_so_far
+
+    game_state = {}
+    game_state['round_id'] = table_state.get_round_id()
+    game_state['initial_stack'] = player.get_initial_stack()
+    game_state['stack'] = player.get_stack()
+    game_state['current_bet'] = table_state.get_current_bet()
+    game_state['call_amount'] = call_amount
+    game_state['current_pot'] = table_state.get_current_pot()
+    game_state['phase'] = table_state.get_phase()
+    game_state['my_turn'] = player.get_my_turn()
+    game_state['hand'] = player.get_hand()
+    game_state['community'] = table_state.get_community_cards()
+    game_state['opponents'] = opponents
+
+    if posted:
+        game_state['posted'] = True
+
+    return game_state

@@ -35,7 +35,7 @@ class TableState:
         return self.phase
 
     def get_community_cards(self):
-        return self.community
+        return [card for card in self.community if card is not None]
 
     @classmethod
     def get(self_class, player):

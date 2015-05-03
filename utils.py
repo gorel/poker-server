@@ -3,6 +3,7 @@ from errors import *
 from dbhelper import *
 from gamehelper import *
 import sqlite3
+import subprocess
 from itsdangerous import URLSafeSerializer
 from flask import Flask, request, flash, abort, jsonify
 from flask import current_app as app
@@ -19,6 +20,11 @@ UPDATE_PW_QUERY = "UPDATE users SET password=?, pw_reset=NULL WHERE id=?"
 UPDATE_ACTIVE_QUERY = "UPDATE users SET active=? WHERE id=?"
 UPDATE_ADMIN_QUERY = "UPDATE users SET admin=? WHERE id=?"
 DELETE_QUERY = "DELETE FROM users WHERE display=?"
+
+DAEMON_RUNNING_MESSAGE = "Daemon is running"
+CHECK_DAEMON_COMMAND = ["./pokerdaemon.py", "status"]
+START_DAEMON_COMMAND = ["./pokerdaemon.py", "start"]
+STOP_DAEMON_COMMAND  = ["./pokerdaemon.py", "stop"]
 
 # Login Manager creation function
 def create_login_manager(app):
@@ -197,28 +203,34 @@ def do_admin_actions():
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
 
-    for field in request.form:
-        value = int(request.form.get(field))
-        # Ignore the hidden attribute if the checkbox is active
-        if ".hidden" in field:
-            field = field.split(".hidden")[0]
-            if field in request.form:
-                continue
+    # Admin is starting or stopping the poker daemon
+    if "start" in request.form:
+        messages.update(start_daemon())
+    elif "stop" in request.form:
+        messages.update(stop_daemon())
+    else:
+        for field in request.form:
+            value = int(request.form.get(field))
+            # Ignore the hidden attribute if the checkbox is active
+            if ".hidden" in field:
+                field = field.split(".hidden")[0]
+                if field in request.form:
+                    continue
 
 
-        if "active" in field:
-            user = int(field.split("active")[1])
-            data = (value, user, )
-            c.execute(UPDATE_ACTIVE_QUERY, data)
-        elif "admin" in field:
-            user_id = int(field.split("admin")[1])
-            # Don't allow the user to delete their own administrator access
-            if user_id != current_user.get_user_id():
-                data = (value, user_id, )
-                c.execute(UPDATE_ADMIN_QUERY, data)
-    conn.commit()
-    conn.close()
-    messages['info'] = infos.get("field_success")
+            if "active" in field:
+                user = int(field.split("active")[1])
+                data = (value, user, )
+                c.execute(UPDATE_ACTIVE_QUERY, data)
+            elif "admin" in field:
+                user_id = int(field.split("admin")[1])
+                # Don't allow the user to delete their own administrator access
+                if user_id != current_user.get_user_id():
+                    data = (value, user_id, )
+                    c.execute(UPDATE_ADMIN_QUERY, data)
+        conn.commit()
+        conn.close()
+        messages['info'] = infos.get("field_success")
     return messages
 
 def post_action(player, action, amount=0):
@@ -260,3 +272,21 @@ def load_game_state(player, posted):
         game_state['posted'] = True
 
     return game_state
+
+def get_daemon_status():
+    out = subprocess.check_output(CHECK_DAEMON_COMMAND).strip()
+    return out == DAEMON_RUNNING_MESSAGE
+
+def start_daemon():
+    ret = subprocess.call(START_DAEMON_COMMAND)
+    if ret == 0:
+        return {'info': infos.get("daemon_start")}
+    else:
+        return {'error': errors.get("daemon_start")}
+
+def stop_daemon():
+    ret = subprocess.call(STOP_DAEMON_COMMAND)
+    if ret == 0:
+        return {'info': infos.get("daemon_stop")}
+    else:
+        return {'error': errors.get("daemon_stop")}

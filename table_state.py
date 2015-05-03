@@ -1,6 +1,17 @@
-from dbhelper import *
 from gamehelper import card2str
 import sqlite3
+
+# Database column information
+TABLE_INDEX_COLUMN          = 0
+TABLE_ROUND_COLUMN          = 1
+TABLE_CURRENT_BET_COLUMN    = 2
+TABLE_CURRENT_POT_COLUMN    = 3
+TABLE_PHASE_COLUMN          = 4
+TABLE_COMM1_COLUMN          = 5
+TABLE_COMM2_COLUMN          = 6
+TABLE_COMM3_COLUMN          = 7
+TABLE_COMM4_COLUMN          = 8
+TABLE_COMM5_COLUMN          = 9
 
 # Constants
 SELECT_QUERY = "SELECT * FROM table_states WHERE table_id=?"

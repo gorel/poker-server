@@ -81,6 +81,8 @@ def register():
 def account():
     if request.method == 'POST':
         current_user.generate_api_key()
+        # Redirect so refreshing the page won't send another POST
+        return redirect(request.args.get('next') or url_for('account'))
     return render_template('account.html')
 
 @app.route('/account/settings', methods=['GET', 'POST'])
@@ -136,21 +138,20 @@ def admin():
     if not current_user.is_administrator():
         abort(401)
 
-    messages = {}
     if request.method == 'POST':
         messages = do_admin_actions()
-    users = User.getall()
-    return render_template('admin.html', users=users, **messages)
+        # Redirect so refreshing the page won't redo the action
+        return redirect(request.args.get('next') or url_for('admin', **messages))
+    else:
+        messages = {k.decode('utf8'): v.decode('utf8') for k,v in request.args.items()}
+        users = User.getall()
+        status = get_daemon_status()
+        return render_template('admin.html', users=users, daemon_running=status, **messages)
 
 @app.route('/tables')
 def tables():
     error = errors.get(request.args.get('error'))
     return render_template('tables.html', error=error)
-
-@app.route('/scoreboard')
-def scoreboard():
-    error = errors.get(request.args.get('error'))
-    return render_template('scoreboard.html', error=error)
 
 @app.route('/play/<apikey>/<action>/<amount>', methods=['GET', 'POST'])
 def play(apikey=None, action=None, amount=None):
@@ -166,5 +167,8 @@ def play(apikey=None, action=None, amount=None):
 
 # Start the server
 if __name__ == '__main__':
-    # TODO: Start a poker server here?
-    app.run()
+    try:
+        app.run()
+    except:
+        stop_daemon()
+        app.run()

@@ -1,9 +1,19 @@
-from dbhelper import *
 from gamehelper import card2str
 import sqlite3
 
+# Database column information
+PLAYER_ROUND_ID_COLUMN      = 0
+PLAYER_USER_ID_COLUMN       = 1
+PLAYER_TABLE_ID_COLUMN      = 2
+PLAYER_INITIAL_STACK_COLUMN = 3
+PLAYER_STACK_COLUMN         = 4
+PLAYER_MY_TURN_COLUMN       = 5
+PLAYER_HAND1_COLUMN         = 6
+PLAYER_HAND2_COLUMN         = 7
+PLAYER_IS_FOLDED_COLUMN     = 8
+PLAYER_DISPLAY_COLUMN       = 9
+
 # Constants
-# TODO: Select based on api key
 SELECT_QUERY = "SELECT Player.*, User.display FROM players Player INNER JOIN users User on Player.user_id = User.id WHERE User.apikey=? ORDER BY Player.id DESC LIMIT 1"
 SELECT_OPPONENTS_QUERY = "SELECT * FROM players WHERE table_id=? AND round_id=? AND user_id!=?"
 INSERT_ACTION_QUERY = "INSERT INTO player_actions ('round_id', 'player_id', 'action', 'amount') VALUES (?, ?, ?, ?)"

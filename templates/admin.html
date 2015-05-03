@@ -5,6 +5,18 @@
 {% block content %}
     <h1>Admin Settings</h1>
     <hr>
+
+    <form role="form" method="POST">
+    {% if not daemon_running %}
+        <input type="hidden" name="start">
+        <button type="submit" class="btn btn-success">Start Daemon</button>
+    {% else %}
+        <input type="hidden" name="stop">
+        <button type="submit" class="btn btn-danger">Stop Daemon</button>
+    {% endif %}
+    </form>
+
+
     <h2>Users</h2>
 
     <form role="form" method="POST">
@@ -44,6 +56,10 @@
 
 {% block scripts %}
 <script language="JavaScript">
+function startPokerDaemon() {
+    
+}
+
 function toggle() {
     $("#hidebuttontop").removeClass("hidden");
     $("#hidebuttonbottom").removeClass("hidden");

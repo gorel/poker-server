@@ -4,6 +4,15 @@ import sqlite3
 
 # Constants
 SELECT_QUERY = "SELECT * FROM table_states WHERE table_id=?"
+SELECT_ALL_QUERY = """
+    SELECT Table.table_id, User.display, Player.stack, Player.my_turn, Player.is_folded,  Player.hand1, Player.hand2, Table.comm1, Table.comm2, Table.comm3, Table.comm4 Table.comm5
+    FROM table_states Table
+    INNER JOIN players Player
+        ON Table.table_id=Player.table_id
+    INNER JOIN users User
+        ON Player.user_id=User.user_id
+    ORDER BY Table.table_id
+"""
 
 class TableState:
     def __init__(self, table):
@@ -52,3 +61,14 @@ class TableState:
             return Player(player)
         except PlayerNotFoundError:
             return None
+
+    @classmethod
+    def get_all_info(self_class):
+        # TODO: Learn SQL to make this actually work?
+        tables_info = []
+        conn = sqlite3.connect(app.config['DATABASE'])
+        c = conn.cursor()
+        c.execute(SELECT_ALL_QUERY)
+
+        for row in c.fetchone():
+

@@ -6,7 +6,7 @@ Jinja2==2.11.3
 Mako==0.9.1
 MarkupSafe==0.18
 PAM==0.4.2
-Pillow==8.1.1
+Pillow==8.2.0
 Twisted-Core==13.2.0
 Twisted-Names==13.2.0
 Twisted-Web==13.2.0

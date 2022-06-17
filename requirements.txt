@@ -33,7 +33,7 @@ lockfile==0.8
 lxml==4.6.3
 mattdaemon==1.1.1
 nemo-emblems==0.0.1
-numpy==1.8.2
+numpy==1.21.0
 oauthlib==0.6.1
 oneconf==0.3.7
 paramiko==2.0.9

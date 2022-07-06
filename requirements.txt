@@ -30,7 +30,7 @@ html5lib==0.999
 httplib2==0.19.0
 itsdangerous==0.24
 lockfile==0.8
-lxml==4.6.3
+lxml==4.9.1
 mattdaemon==1.1.1
 nemo-emblems==0.0.1
 numpy==1.8.2

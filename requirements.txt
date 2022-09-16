@@ -3,7 +3,7 @@ Flask==1.0
 Flask-Bootstrap==3.3.2.1
 Flask-Login==0.2.11
 Jinja2==2.11.3
-Mako==0.9.1
+Mako==1.2.2
 MarkupSafe==0.18
 PAM==0.4.2
 Pillow==8.1.1
